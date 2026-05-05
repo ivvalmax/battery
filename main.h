@@ -1,6 +1,9 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#include "stm32f10x.h"
+#include "common.h"
+#include "uart.h"
+#include "clock.h"
+
 
 #endif
