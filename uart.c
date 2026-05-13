@@ -91,7 +91,7 @@ void uartNumberTransmit(uint16_t number)
 	uartStrTransmit("\r\n");
 }
 
-static void uartHanleRX(void)
+static void uartHandleRX(void)
 {
     uint8_t pos = (RX_BUFF_SIZE - DMA1_Channel5->CNDTR);
     if (pos == rx_old_pos)
@@ -193,6 +193,35 @@ static int uartParseFrame(const uint8_t *buf, uint8_t buf_len, uart_frame_t *out
     return -1;
 }
 
+void uartSendFrame(uint8_t cmd, uint8_t *data, uint8_t data_len)
+{
+    uint16_t idx = 0;
+
+    tx_buf[idx++] = START_BYTE;
+    tx_buf[idx++] = data_len;
+    tx_buf[idx++] = cmd;
+
+    for (uint8_t i = 0; i < data_len; i++)
+        tx_buf[idx++] = data[i];
+
+    uint16_t crc = crc16_modbus(&tx_buf[1], (uint16_t)(2 + data_len));
+    tx_buf[idx++] = (uint8_t)(crc & 0xFF);
+    tx_buf[idx++] = (uint8_t)(crc >> 8);
+    tx_buf[idx++] = END_BYTE;
+
+    uartSendDma(tx_buf, idx);
+}
+
+void uartSendDma(const uint8_t *data, uint16_t len)
+{
+    while (DMA1_Channel4->CCR & DMA_CCR5_EN) {}
+
+    DMA1_Channel4->CCR &= ~DMA_CCR5_EN;
+    DMA1->IFCR = DMA_IFCR_CGIF4 | DMA_IFCR_CTCIF4 | DMA_IFCR_CTEIF4 | DMA_IFCR_CHTIF4;
+    DMA1_Channel4->CMAR = (uint32_t)data;
+    DMA1_Channel4->CNDTR = len;
+    DMA1_Channel4->CCR |= DMA_CCR5_EN;
+}
 
 void USART1_IRQHandler(void)
 {

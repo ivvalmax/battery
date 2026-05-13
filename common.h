@@ -13,7 +13,7 @@
 #define END_BYTE        0x55
 
 #define RX_BUFF_SIZE 128
-
+#define TX_BUFF_SIZE 128
 typedef struct
 {
     uint8_t start;
@@ -25,6 +25,7 @@ typedef struct
 } uart_frame_t;
 
 static uint8_t rx_buff[RX_BUFF_SIZE];
+static uint8_t tx_buff[TX_BUFF_SIZE];
 static volatile uint8_t rx_done = 0;
 static volatile uint8_t rx_error = 0;
 static volatile uint8_t rx_old_pos = 0;
